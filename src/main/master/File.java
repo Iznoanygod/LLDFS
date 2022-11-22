@@ -8,5 +8,4 @@ public class File {
 	private String owner;
 	private short perms;
 	private List chunks;
-	private char[] data;
 }
