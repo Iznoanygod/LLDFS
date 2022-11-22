@@ -1,5 +1,8 @@
 package main.master;
 
-public class MasterServer {
+import java.util.List;
 
+public class MasterServer {
+	private boolean mirror;
+	private List masterServers;
 }
