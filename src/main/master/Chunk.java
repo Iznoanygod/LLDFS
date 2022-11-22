@@ -1,4 +1,4 @@
-package main.MasterServer;
+package main.master;
 
 public class Chunk {
 	private String chunk_name;

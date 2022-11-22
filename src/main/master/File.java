@@ -1,4 +1,4 @@
-package main.MasterServer;
+package main.master;
 
 import java.util.List;
 
