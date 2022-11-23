@@ -5,12 +5,12 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
-import java.net.UnknownHostException;
 import java.util.Properties;
 
 public class ScalableFileSystem {
 
 	protected static Properties properties;
+	public static Server server;
 
 	public static void main(String[] args) {
 		//Add new server node handling here somewhere
@@ -37,27 +37,23 @@ public class ScalableFileSystem {
 			for(int i = 0;;i++) {
 				String[] split = masterServers[i].split(":");
 				ip = split[0];
-				try {
-					port = Integer.parseInt(split[1]);
-				} catch(NumberFormatException e) {
-					System.err.println("Port not a number");
-					System.exit(0);
-				}
-				try {
-					SocketAddress addr = new InetSocketAddress(ip, port);
-					Socket tempSocketConnect = new Socket();
-					tempSocketConnect.connect(addr, 1000);
-					masterConnectSocket = tempSocketConnect;
-					Thread.sleep(1000000);
-					break;
-				} catch(Exception e) {
-					System.err.println("Failed to connect to " + ip + ":" + port);
-				}
+				
+				port = Integer.parseInt(split[1]);
+				SocketAddress addr = new InetSocketAddress(ip, port);
+				Socket tempSocketConnect = new Socket();
+				tempSocketConnect.connect(addr, 1000);
+				masterConnectSocket = tempSocketConnect;
+				break;
 			}
 		} catch(ArrayIndexOutOfBoundsException e) {
 			System.err.println("Failed to connect to any master servers");
 			System.exit(0);
-		} 
+		} catch(IOException e) {
+			System.err.println("Failed to connect to " + ip + ":" + port);
+		} catch(NumberFormatException e) {
+			System.err.println("Port not a number");
+			System.exit(0);
+		}
 		System.err.println("Connected to server " + ip + ":" + port);
 	}
 }

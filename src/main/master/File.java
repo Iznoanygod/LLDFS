@@ -7,5 +7,5 @@ public class File {
 	private long size;
 //	private String owner;
 //	private short perms;
-	private List chunks;
+	private List<String> chunks;
 }

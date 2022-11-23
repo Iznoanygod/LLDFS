@@ -1,5 +1,14 @@
 package main.node;
 
-public class NodeServer {
+import java.net.Socket;
+import java.util.HashMap;
+import java.util.Map;
 
+public class NodeServer {
+	private Socket masterServerSocket;
+	
+	private Map<String,Chunk> chunkMap;
+	
 }
+	
+
