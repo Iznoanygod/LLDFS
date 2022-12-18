@@ -1,4 +1,4 @@
-package main.master;
+package main.node;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -6,14 +6,13 @@ import java.io.OutputStream;
 import java.net.Socket;
 import main.ScalableFileSystem;
 
-public class ClientThread extends Thread {
-
+public class MasterThread extends Thread {
 	private Socket socket;
 	private InputStream inputStream;
 	private OutputStream outputStream;
 	private boolean running;
 	
-	public ClientThread(Socket socket) {
+	public MasterThread(Socket socket) {
 		try {
 			this.socket = socket;
 			this.inputStream = socket.getInputStream();
@@ -32,12 +31,12 @@ public class ClientThread extends Thread {
 			while(running) {
 				byte command = (byte) inputStream.read();
 				switch(command) {
-				case -1:
+				case -1://Error
 					System.err.println("Client thread encountered errors");
 				case 1: //Disconnect
 					running = false;
 					break;
-				case 0:
+				case 0://Heartbeat
 					break;
 				case 2:
 				default:
@@ -58,4 +57,5 @@ public class ClientThread extends Thread {
 	public void slowStop() {
 		running = false;
 	}
+
 }

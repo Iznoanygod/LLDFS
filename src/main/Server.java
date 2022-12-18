@@ -1,9 +1,9 @@
 package main;
 
-public abstract class Server {
+public abstract class Server extends Thread {
 	public abstract void run();
 	
-	public abstract void stop();
+	public abstract void slowStop();
 	
 	public abstract void addThread(Thread cThread);
 	

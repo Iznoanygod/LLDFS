@@ -3,18 +3,31 @@ package main.master;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import main.Server;
 
 public class MasterServer extends Server{
 	private int port;
-	private boolean mirror;
-	private List masterServers;
 	private ServerSocket serverSocket;
 	private boolean running;
 	private Set<Thread> connectedThreads;
 	
+	@Override
+	public void start() {
+		running=true;
+		super.start();
+	}
+	
+	public MasterServer(int port, boolean master) {
+		super();
+		
+		this.port = port;
+		this.connectedThreads = new HashSet<>();
+	}
+	
+	@Override
 	public void run() {
 		try {
 			serverSocket = new ServerSocket(port);
@@ -24,6 +37,7 @@ public class MasterServer extends Server{
 				System.err.println("Client connected");
 				//Add thread, keep track of all current clients
 				ClientThread cThread = new ClientThread(clientConnect);
+				cThread.start();
 				connectedThreads.add(cThread);
 			}
 		} catch (IOException e) {
@@ -39,7 +53,7 @@ public class MasterServer extends Server{
 		connectedThreads.add(cThread);
 	}
 	
-	public void stop() {
+	public void slowStop() {
 		running = false;
 	}
 }

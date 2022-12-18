@@ -1,2 +1,2 @@
-MASTER=localhost:8443
 PORT=23444
+MASTER=true

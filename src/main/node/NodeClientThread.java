@@ -1,4 +1,4 @@
-package main.master;
+package main.node;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -6,14 +6,13 @@ import java.io.OutputStream;
 import java.net.Socket;
 import main.ScalableFileSystem;
 
-public class ClientThread extends Thread {
-
+public class NodeClientThread extends Thread {
 	private Socket socket;
 	private InputStream inputStream;
 	private OutputStream outputStream;
 	private boolean running;
 	
-	public ClientThread(Socket socket) {
+	public NodeClientThread(Socket socket) {
 		try {
 			this.socket = socket;
 			this.inputStream = socket.getInputStream();
