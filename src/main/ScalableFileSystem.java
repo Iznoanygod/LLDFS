@@ -38,7 +38,7 @@ public class ScalableFileSystem {
 		boolean isMaster = Boolean.parseBoolean(properties.getProperty("MASTER"));
 		if(isMaster) {
 			try {
-				server = new MasterServer(port, true);
+				server = new MasterServer(port);
 				server.start();
 				server.join();
 			} catch (InterruptedException e) {
@@ -81,6 +81,16 @@ public class ScalableFileSystem {
 			}
 		}
 		
+	}
+	
+	public static void closeSilently(Socket s) {
+		if(s != null) {
+			try {
+				s.close();
+			} catch(IOException e) {
+				
+			}
+		}
 	}
 	
 }

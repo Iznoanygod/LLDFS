@@ -1,9 +1,12 @@
 package main.node;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 import main.ScalableFileSystem;
 
 public class NodeClientThread extends Thread {
@@ -38,7 +41,28 @@ public class NodeClientThread extends Thread {
 					break;
 				case 0:
 					break;
-				case 2:
+				case 2://get file chunk or return -1
+				{
+					byte[] chunk = new byte[64];
+					int readin = 0;
+					while(readin != 64) {
+						readin += inputStream.read(chunk,readin,64 - readin);
+					}
+					String chunk_name = new String(chunk);
+					File file = new File(chunk_name);
+					if(file.exists()) {
+						byte[] data = new byte[(int) file.length()];
+						try (FileInputStream fileIn = new FileInputStream(file)) {
+							fileIn.read(data, 0, (int)file.length());
+						}
+						outputStream.write(ByteBuffer.allocate(4).putInt((int)file.length()).array());
+						outputStream.write(data, 0, (int) file.length());
+					}
+					else {
+						outputStream.write(ByteBuffer.allocate(4).putInt(-1).array());
+					}
+					break;
+				}
 				default:
 					System.err.println("Unknown command");
 				}

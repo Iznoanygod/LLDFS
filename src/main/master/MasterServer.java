@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import main.Server;
@@ -13,6 +14,7 @@ public class MasterServer extends Server{
 	private ServerSocket serverSocket;
 	private boolean running;
 	private Set<Thread> connectedThreads;
+	private List<Node> nodeList;
 	
 	@Override
 	public void start() {
@@ -20,11 +22,11 @@ public class MasterServer extends Server{
 		super.start();
 	}
 	
-	public MasterServer(int port, boolean master) {
+	public MasterServer(int port) {
 		super();
-		
 		this.port = port;
 		this.connectedThreads = new HashSet<>();
+		this.nodeList = new LinkedList<>();
 	}
 	
 	@Override
@@ -55,5 +57,9 @@ public class MasterServer extends Server{
 	
 	public void slowStop() {
 		running = false;
+	}
+	
+	public List<Node> getNodes() {
+		return nodeList;
 	}
 }
