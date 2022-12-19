@@ -8,7 +8,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import main.Server;
-import main.master.ClientThread;
+import main.node.NodeClientThread;
 
 public class NodeServer extends Server{
 	private Socket serverConnect;
@@ -17,16 +17,23 @@ public class NodeServer extends Server{
 	private int port;
 	private boolean running;
 	private Set<Thread> connectedThreads;
+
+	private MasterThread masterThread;
 	
 	public NodeServer(int port, Socket server) {
 		super();
 		this.port = port;
 		this.connectedThreads = new HashSet<>();
 		this.serverConnect = server;
+		MasterThread mThread = new MasterThread(server);
+		connectedThreads.add(mThread);
+		masterThread = mThread;
 	}
 
 	@Override
 	public void run() {
+		masterThread.start();
+		running = true;
 		try {
 			serverSocket = new ServerSocket(port);
 			System.err.println("Server started, listening on port " + port);
@@ -34,7 +41,7 @@ public class NodeServer extends Server{
 				Socket clientConnect = serverSocket.accept();
 				System.err.println("Comm connected");
 				//Add thread, keep track of all current clients
-				ClientThread cThread = new ClientThread(clientConnect);
+				NodeClientThread cThread = new NodeClientThread(clientConnect);
 				cThread.start();
 				connectedThreads.add(cThread);
 			}
@@ -58,7 +65,18 @@ public class NodeServer extends Server{
 	public void slowStop() {
 		running = false;
 	}
-	
+
+	public void addChunk(String name, Chunk chunk){
+		chunkMap.put(name, chunk);
+	}
+
+	public Chunk removeChunk(String name) {
+		return chunkMap.remove(name);
+	}
+
+	public Chunk getChunk(String name) {
+		return chunkMap.get(name);
+	}
 }
 	
 
