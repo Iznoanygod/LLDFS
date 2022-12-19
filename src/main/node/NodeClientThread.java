@@ -67,7 +67,14 @@ public class NodeClientThread extends Thread {
                     }
                     case 3://speed test chunk
                     {
-
+                        System.err.println("Speed test");
+                        byte[] data = new byte[ScalableFileSystem.CHUNK_SIZE*32];
+                        int readin = 0;
+                        while (readin != ScalableFileSystem.CHUNK_SIZE*32) {
+                            readin += inputStream.read(data, readin, ScalableFileSystem.CHUNK_SIZE*32 - readin);
+                        }
+                        outputStream.write(data, 0, ScalableFileSystem.CHUNK_SIZE*32);
+                        break;
                     }
                     default:
                         System.err.println("Unknown command");

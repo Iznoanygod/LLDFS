@@ -17,12 +17,13 @@ public class ScalableFileSystem {
 
 	//Some constants
 	public static final int CHUNK_SIZE = 32768;
+	public static final int CACHE_CHUNK_SIZE = 1024;
 
 	protected static Properties properties;
 	public static Server server;
 
 	public static void main(String[] args) {
-		String ip = null;
+		String ip;
 		String masterip = null;
 		int port = 0;
 		//Add new server node handling here somewhere
@@ -67,7 +68,7 @@ public class ScalableFileSystem {
 				int masterport = Integer.parseInt(split[1]);
 				SocketAddress addr = new InetSocketAddress(masterip, masterport);
 				masterConnectSocket = new Socket();
-				masterConnectSocket.connect(addr, 1000);
+				masterConnectSocket.connect(addr, 5000);
 
 				OutputStream oStream = masterConnectSocket.getOutputStream();
 				InputStream iStream = masterConnectSocket.getInputStream();
@@ -110,7 +111,7 @@ public class ScalableFileSystem {
 			try {
 				s.close();
 			} catch(IOException e) {
-				
+				System.err.println("Warning: socket didn't close correctly, but this is not problematic");
 			}
 		}
 	}

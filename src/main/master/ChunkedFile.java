@@ -4,10 +4,10 @@ import java.util.List;
 
 public class ChunkedFile {
 	private String file_name;
-	private long size;
+	private int size;
 	private List<Chunk> chunks;
 
-	public ChunkedFile(String file_name, long size) {
+	public ChunkedFile(String file_name, int size) {
 		this.file_name = file_name;
 		this.size = size;
 	}
@@ -16,7 +16,7 @@ public class ChunkedFile {
 		return file_name;
 	}
 
-	public long getSize() {
+	public int getSize() {
 		return size;
 	}
 

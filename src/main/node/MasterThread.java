@@ -84,7 +84,7 @@ public class MasterThread extends Thread {
                         }
                         break;
                     }
-                    case 4:// get file chunk or return -1
+                    case 4:// get file chunk or return
                     {
                         byte[] chunk = new byte[64];
                         int readin = 0;

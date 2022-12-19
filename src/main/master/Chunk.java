@@ -4,11 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Chunk {
-    private List<Node> hostNodes;
-    private long size;
-    private String chunkName;
+    private final List<Node> hostNodes;
+    private final int size;
+    private final String chunkName;
 
-    public Chunk(String chunkName, long size) {
+    public Chunk(String chunkName, int size) {
         this.size = size;
         this.chunkName = chunkName;
         hostNodes = new ArrayList<>();
@@ -38,7 +38,7 @@ public class Chunk {
         hostNodes.remove(node);
     }
 
-    public long getSize() {
+    public int getSize() {
         return size;
     }
 
