@@ -27,7 +27,7 @@ public class ClientThread extends Thread {
 
             running = true;
         } catch (IOException e) {
-            System.err.println("Failed to create socket");
+            System.err.println("Error: Failed to create socket");
             running = false;
         }
     }
@@ -39,7 +39,7 @@ public class ClientThread extends Thread {
                 byte command = (byte) inputStream.read();
                 switch (command) {
                     case -1:
-                        System.err.println("Client thread encountered errors");
+                        System.err.println("Error: Client thread encountered errors");
                     case 1: //Disconnect
                         outputStream.write(0);
                         slowStop();
@@ -84,7 +84,7 @@ public class ClientThread extends Thread {
                         ScalableFileSystem.server.addThread(nThread);
                         ScalableFileSystem.server.removeThread(this);
                         ((MasterServer) ScalableFileSystem.server).addNode(temp);
-                        System.err.println("Client converted to node");
+                        System.err.println("Log: Client converted to node");
                         outputStream.write(0);
                         break;
                     }
@@ -137,7 +137,7 @@ public class ClientThread extends Thread {
                         if (mServer.getFileMap().containsKey(fileNameString)) {
                             outputStream.write(0);
                             ChunkedFile file = mServer.getFileMap().get(fileNameString);
-                            outputStream.write(file.getChunks().size());
+                            outputStream.write(ByteBuffer.allocate(4).putInt(file.getChunks().size()).array());
                             for (Chunk chunk : file.getChunks()) {
                                 outputStream.write(chunk.getChunkName().getBytes(), 0, 64);
                             }
@@ -177,6 +177,10 @@ public class ClientThread extends Thread {
                         }
                         String chunkNameString = new String(chunkName);
                         Chunk chunk = mServer.getMapping(chunkNameString);
+                        if(chunk == null) {
+                            outputStream.write(2);
+                            break;
+                        }
                         if (mServer.getCache().hasChunk(chunkNameString)) {
                             outputStream.write(0);
                             outputStream.write(ByteBuffer.allocate(4).putInt(chunk.getSize()).array());
@@ -203,11 +207,15 @@ public class ClientThread extends Thread {
                             final Node finalBestNode = bestNode;
                             Runnable cacheFetch = () -> {
                                 try {
-                                    outputStream.write(4);
+                                    System.err.println("Log: Fetching chunk from best node");
+                                    InputStream inputStream1 = finalBestNode.getThread().getInputStream();
+                                    OutputStream outputStream1 = finalBestNode.getThread().getOutputStream();
+                                    outputStream1.write(4);
+                                    outputStream1.write(chunkNameString.getBytes(), 0, 64);
                                     int readIn = 0;
                                     byte[] fileSize = new byte[4];
                                     while (readIn != 4) {
-                                        readIn += inputStream.read(fileSize, readIn, 4 - readIn);
+                                        readIn += inputStream1.read(fileSize, readIn, 4 - readIn);
                                     }
                                     int size = ByteBuffer.wrap(fileSize).getInt();
                                     if(size == -1) {
@@ -219,11 +227,12 @@ public class ClientThread extends Thread {
                                     byte[] chunkData = new byte[size];
                                     readIn = 0;
                                     while (readIn != size) {
-                                        readIn += inputStream.read(chunkData, readIn, size - readIn);
+                                        readIn += inputStream1.read(chunkData, readIn, size - readIn);
                                     }
                                     mServer.getCache().addChunk(chunkNameString, chunkData);
+                                    System.err.println("Log: Chunk fetched");
                                 } catch (IOException e) {
-                                    System.err.println("Error: node disconnected");
+                                    System.err.println("Error: Client disconnected");
                                     running = false;
                                 }
                             };
@@ -237,7 +246,7 @@ public class ClientThread extends Thread {
                         break;
                     }
                     default:
-                        System.err.println("Unknown command:" + command);
+                        System.err.println("Warning: Unknown command:" + command);
                 }
             }
             if (!preserveSocket) {
@@ -246,10 +255,11 @@ public class ClientThread extends Thread {
                 socket.close();
             }
         } catch (IOException e) {
-            System.err.println("Client thread disconnected unexpectedly");
+            System.err.println("Error: Client thread disconnected unexpectedly");
             ScalableFileSystem.closeSilently(socket);
             running = false;
         } finally {
+            System.err.println("Log: Client thread finished");
             ScalableFileSystem.server.removeThread(this);
         }
     }

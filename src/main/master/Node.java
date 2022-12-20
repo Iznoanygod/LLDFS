@@ -63,6 +63,7 @@ public class Node {
 				if (status != 0) {
 					System.err.println("Warning: Node server encountered an error saving chunk, but this is not fatal as long as other nodes are available");
 				}
+				System.err.println("Log: Chunk saved");
 			} catch (IOException e) {
 				System.err.println("Error: Node server unexpectedly closed");
 				thread.slowStop();

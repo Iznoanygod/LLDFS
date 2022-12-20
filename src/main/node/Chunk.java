@@ -42,11 +42,12 @@ public class Chunk {
     }
 
     public int destroy() {
-        if (fileSocket.delete()) {
+        return 1;
+        /*if (fileSocket.delete()) {
             return 1;
         } else {
             return 0;
-        }
+        }*/
     }
 
     public byte[] getData() {

@@ -85,7 +85,7 @@ public class NodeThread extends Thread {
 	}
 
 	public void maintenance() {
-		System.err.println("Error: Node thread maintenance");
+		System.err.println("Log: Node thread maintenance on node " + node.getAddress() + ":" + node.getPort());
 		heartBeat();
 		speedTest();
 	}
@@ -99,7 +99,7 @@ public class NodeThread extends Thread {
 			while(readin != size) {
 				readin += inputStream.read(data, readin, size - readin);
 			}
-			System.err.println("Log: Thread response:" + new String(data));
+			//System.err.println("Log: Thread response:" + new String(data));
 		} catch (IOException e) {
 			System.err.println("Error: Node thread disconnected unexpectedly");
 			running = false;
@@ -123,7 +123,7 @@ public class NodeThread extends Thread {
 			}
 			long endTime = System.currentTimeMillis();
 			long time = endTime - startTime;
-			System.err.println("Log: Time to send 32KB*32:" + time);
+			//System.err.println("Log: Time to send 32KB*32:" + time);
 			for(int i = 0; i < ScalableFileSystem.CHUNK_SIZE*32; i++) {
 				if(data[i] != response[i]) {
 					System.err.println("Warning: Data mismatch at index " + i);

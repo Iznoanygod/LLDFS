@@ -36,30 +36,34 @@ public class NodeClientThread extends Thread {
                 byte command = (byte) inputStream.read();
                 switch (command) {
                     case -1:
-                        System.err.println("Client thread encountered errors");
+                        System.err.println("Error: Client thread encountered errors");
                     case 1: //Disconnect
                         running = false;
+                        System.err.println("Log: Thread disconnected");
                         break;
                     case 0:
+                        System.err.println("Log: NOP");
                         break;
                     case 2://get file chunk or return -1
                     {
+
                         byte[] chunk = new byte[64];
                         int readin = 0;
                         while (readin != 64) {
                             readin += inputStream.read(chunk, readin, 64 - readin);
                         }
                         String chunkName = new String(chunk);
-                        //use chunk config
-                        File file = new File(chunkName);
-                        if (file.exists()) {
-                            byte[] data = new byte[(int) file.length()];
-                            try (FileInputStream fileIn = new FileInputStream(file)) {
-                                fileIn.read(data, 0, (int) file.length());
-
-                            }
-                            outputStream.write(ByteBuffer.allocate(4).putInt((int) file.length()).array());
-                            outputStream.write(data, 0, (int) file.length());
+                        Chunk fileChunk = ((NodeServer) ScalableFileSystem.server).getChunk(chunkName);
+                        System.err.println("Log: Fetching chunk " + chunkName);
+                        if(fileChunk == null) {
+                            outputStream.write(ByteBuffer.allocate(4).putInt(-1).array());
+                            break;
+                        }
+                        byte[] data = fileChunk.getData();
+                        if (data != null) {
+                            outputStream
+                                    .write(ByteBuffer.allocate(4).putInt((int) fileChunk.getSize()).array());
+                            outputStream.write(data, 0, (int) fileChunk.getSize());
                         } else {
                             outputStream.write(ByteBuffer.allocate(4).putInt(-1).array());
                         }
@@ -67,24 +71,24 @@ public class NodeClientThread extends Thread {
                     }
                     case 3://speed test chunk
                     {
-                        System.err.println("Speed test");
-                        byte[] data = new byte[ScalableFileSystem.CHUNK_SIZE*32];
+                        System.err.println("Log: Performing speed test");
+                        byte[] data = new byte[ScalableFileSystem.CHUNK_SIZE * 32];
                         int readin = 0;
-                        while (readin != ScalableFileSystem.CHUNK_SIZE*32) {
-                            readin += inputStream.read(data, readin, ScalableFileSystem.CHUNK_SIZE*32 - readin);
+                        while (readin != ScalableFileSystem.CHUNK_SIZE * 32) {
+                            readin += inputStream.read(data, readin, ScalableFileSystem.CHUNK_SIZE * 32 - readin);
                         }
-                        outputStream.write(data, 0, ScalableFileSystem.CHUNK_SIZE*32);
+                        outputStream.write(data, 0, ScalableFileSystem.CHUNK_SIZE * 32);
                         break;
                     }
                     default:
-                        System.err.println("Unknown command");
+                        System.err.println("Warning: Unknown command");
                 }
             }
             inputStream.close();
             outputStream.close();
             socket.close();
         } catch (IOException e) {
-            System.err.println("Client thread disconnected unexpectedly");
+            System.err.println("Error: Client thread disconnected unexpectedly");
             running = false;
         } finally {
             ScalableFileSystem.server.removeThread(this);

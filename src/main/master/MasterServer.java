@@ -20,7 +20,7 @@ public class MasterServer extends Server {
     private Set<Thread> connectedThreads;
     private List<Node> nodeList;
 
-
+    private Timer scheduledTasks;
     private Map<String, ChunkedFile> fileMap;
     private Map<String, Chunk> chunkMap;
     private BlockingQueue<Node> highSpeedNodes, lowSpeedNodes, mediumSpeedNodes;
@@ -40,6 +40,7 @@ public class MasterServer extends Server {
         this.fileMap = new HashMap<>();
         this.chunkMap = new HashMap<>();
         this.nodeList = new LinkedList<>();
+        this.scheduledTasks = new Timer();
         this.lowSpeedNodes = new LinkedBlockingQueue<>();
         this.mediumSpeedNodes = new LinkedBlockingQueue<>();
         this.highSpeedNodes = new LinkedBlockingQueue<>();
@@ -47,12 +48,19 @@ public class MasterServer extends Server {
 
     @Override
     public void run() {
+        TimerTask scheduledTask = new TimerTask() {
+            @Override
+            public void run() {
+                reorganizeNodes();
+            }
+        };
+        scheduledTasks.scheduleAtFixedRate(scheduledTask, 60000, 60000);
         try {
             serverSocket = new ServerSocket(port);
-            System.err.println("Server started, listening on port " + port);
+            System.err.println("Log: Server started, listening on port " + port);
             while (running) {
                 Socket clientConnect = serverSocket.accept();
-                System.err.println("Client connected");
+                System.err.println("Log: Client connected");
                 //Add thread, keep track of all current clients
                 ClientThread cThread = new ClientThread(clientConnect);
                 cThread.start();
@@ -60,7 +68,7 @@ public class MasterServer extends Server {
             }
             serverSocket.close();
         } catch (IOException e) {
-            System.err.println("Server socket closed, shutting down");
+            System.err.println("Error: Server socket closed, shutting down");
         }
     }
 
@@ -98,6 +106,7 @@ public class MasterServer extends Server {
     }
 
     public void reorganizeNodes() {
+        System.err.println("Log: Reorganizing nodes");
         highSpeedNodes.clear();
         mediumSpeedNodes.clear();
         lowSpeedNodes.clear();
@@ -110,7 +119,7 @@ public class MasterServer extends Server {
         for (int i = nodeList.size() * 2 / 3; i < nodeList.size(); i++) {
             highSpeedNodes.add(nodeList.get(i));
         }
-
+        System.err.println("Log: Done reorganizing");
     }
 
     public int deleteFile(String fileName) {
@@ -216,6 +225,10 @@ public class MasterServer extends Server {
                     highNode.saveChunk(newChunk, chunkData);
                     newChunk.addNode(highNode);
                     highSpeedNodes.add(highNode);
+                }
+                if(lowNode == null && mediumNode == null && highNode == null){
+                    System.err.println("Error: Something seriously went wrong with the scheduler");
+                    System.exit(0);
                 }
                 chunkMap.put(chunkName, newChunk);
                 chunks.add(newChunk);

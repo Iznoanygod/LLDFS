@@ -25,7 +25,7 @@ public class MasterThread extends Thread {
 
             running = true;
         } catch (IOException e) {
-            System.err.println("Failed to create socket");
+            System.err.println("Error: Failed to create socket");
             running = false;
         }
     }
@@ -34,15 +34,16 @@ public class MasterThread extends Thread {
     public void run() {
         try {
             while (running) {
-                System.err.println("Waiting for command");
                 byte command = (byte) inputStream.read();
                 switch (command) {
                     case -1:// Error
-                        System.err.println("Client thread encountered errors");
+                        System.err.println("Warning: Client thread encountered errors");
                     case 1: // Disconnect
+                        System.err.println("Log: Thread disconnected");
                         running = false;
                         break;
                     case 0:// NOP
+                        System.err.println("Log: NOP");
                         break;
                     case 2:// heartbeat
                     {
@@ -67,21 +68,16 @@ public class MasterThread extends Thread {
                         ByteBuffer bb = ByteBuffer.wrap(size);
                         int chunkSize = bb.getInt();
                         String chunkName = new String(chunk);
+                        System.err.println("Log: Storing chunk " + chunkName);
                         Chunk fileChunk = new Chunk(chunkName, chunkSize);
-                        byte[] data = new byte[chunkSize];
+                        byte[] data = new byte[chunkSize];//chunk
                         readin = 0;
-                        while (readin != chunkSize) {
+                        while (readin != chunkSize) {//read chunk data
                             readin += inputStream.read(data, readin, chunkSize - readin);
                         }
-
-                        int response = fileChunk.write(data);
-
-                        if (response == 0) {
-                            ((NodeServer) ScalableFileSystem.server).addChunk(chunkName, fileChunk);
-                            outputStream.write(0);
-                        } else {
-                            outputStream.write(2);
-                        }
+                        ((NodeServer) ScalableFileSystem.server).addChunk(chunkName, fileChunk);
+                        fileChunk.write(data);
+                        outputStream.write(0);
                         break;
                     }
                     case 4:// get file chunk or return
@@ -93,6 +89,7 @@ public class MasterThread extends Thread {
                         }
                         String chunkName = new String(chunk);
                         Chunk fileChunk = ((NodeServer) ScalableFileSystem.server).getChunk(chunkName);
+                        System.err.println("Log: Fetching chunk " + chunkName);
                         byte[] data = fileChunk.getData();
                         if (data != null) {
                             outputStream
@@ -101,7 +98,6 @@ public class MasterThread extends Thread {
                         } else {
                             outputStream.write(ByteBuffer.allocate(4).putInt(-1).array());
                         }
-
                         break;
                     }
                     case 5:// destroy file chunk
@@ -112,13 +108,14 @@ public class MasterThread extends Thread {
                             readin += inputStream.read(chunk, readin, 64 - readin);
                         }
                         String chunkName = new String(chunk);
+                        System.err.println("Log: Destroyed chunk " + chunkName);
                         Chunk fileChunk = ((NodeServer) ScalableFileSystem.server).removeChunk(chunkName);
                         fileChunk.destroy();
                         outputStream.write(ByteBuffer.allocate(4).putInt(0).array());
                     }
                     case 6://speed test node
                     {
-                        System.err.println("Speed test");
+                        System.err.println("Log: Performing speed test");
 						byte[] data = new byte[ScalableFileSystem.CHUNK_SIZE*32];
 						int readin = 0;
 						while (readin != ScalableFileSystem.CHUNK_SIZE*32) {
@@ -129,7 +126,7 @@ public class MasterThread extends Thread {
                     }
 
                     default:
-                        System.err.println("Unknown command:"+command);
+                        System.err.println("Warning: Unknown command:"+command);
                 }
             }
             inputStream.close();
@@ -137,7 +134,7 @@ public class MasterThread extends Thread {
             socket.close();
 
         } catch (IOException e) {
-            System.err.println("Master thread disconnected unexpectedly");
+            System.err.println("Error: Master thread disconnected unexpectedly");
             System.exit(0);
         } finally {
             ScalableFileSystem.server.removeThread(this);

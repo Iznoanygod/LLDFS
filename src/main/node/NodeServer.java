@@ -25,6 +25,7 @@ public class NodeServer extends Server{
 		this.port = port;
 		this.connectedThreads = new HashSet<>();
 		this.serverConnect = server;
+		this.chunkMap = new HashMap<>();
 		MasterThread mThread = new MasterThread(server);
 		connectedThreads.add(mThread);
 		masterThread = mThread;
@@ -36,10 +37,10 @@ public class NodeServer extends Server{
 		running = true;
 		try {
 			serverSocket = new ServerSocket(port);
-			System.err.println("Server started, listening on port " + port);
+			System.err.println("Log: Server started, listening on port " + port);
 			while (running) {
 				Socket clientConnect = serverSocket.accept();
-				System.err.println("Comm connected");
+				System.err.println("Log: Client connected");
 				//Add thread, keep track of all current clients
 				NodeClientThread cThread = new NodeClientThread(clientConnect);
 				cThread.start();
@@ -47,7 +48,7 @@ public class NodeServer extends Server{
 			}
 			serverSocket.close();
 		} catch (IOException e) {
-			System.err.println("Server socket closed, shutting down");
+			System.err.println("Error: Server socket closed, shutting down");
 		}
 	}
 	
